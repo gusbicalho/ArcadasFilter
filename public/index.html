@@ -7,14 +7,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
+
     <base href="/" />
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-    <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-    <script src="/modules/rx/dist/rx.all.min.js"></script>
-    <script src="/modules/rx/dist/rx.all.compat.min.js"></script>
+    <link rel="stylesheet" href="yeti-bootstrap.min.css">
   </head>
   <body>
     <div class="container">
@@ -37,8 +33,12 @@ we
         </div>
       </div>
       <div class="row">
-        <div class="col-xs-12 text-center" id="loader" hidden="true">
-          <img src="loader.gif">
+        <div class="col-xs-12 text-center">
+          <img src="loader.gif" id="loader" hidden="true">
+          <div class="alert alert-danger" id="error-panel" hidden="true">
+            <h4>Erro</h4>
+            <p id="error-msg"></p>
+          </div>
         </div>
         <div class="col-sm-6 col-xs-12 bg-success" id="inside">
           <h2>Franciscanos</h2>
@@ -50,50 +50,10 @@ we
         </div>
       </div>
     </div>
-    
-    <script>
-      var form = $('#names-form');
-      form.submit(function(event) {
-        var names = form.find('textarea').val()
-          .split('\n')
-          .map(function(s) { return s.trim(); })
-          .filter(function(s) { return !!s; });
-        var loader = $('#loader');
-        var insideList = $('#inside ul');
-        var outsideList = $('#outside ul');
 
-        loader.attr('hidden', false);
-        insideList.empty();
-        outsideList.empty();
-
-        Rx.Observable.from(names)
-          .flatMap(function(name) {
-            return Rx.Observable.fromPromise($.get('/franz', {name: name}));
-          })
-          .scan(function(acc, x) {
-            return x.belongs ?
-                    { inside: acc.inside.concat(x.name), outside: acc.outside } :
-                    { inside: acc.inside, outside: acc.outside.concat(x.name) };
-          }, {inside: [], outside: []})
-          .subscribe(
-            function(result) {
-              insideList.empty();
-              Rx.Observable.from(result.inside.sort())
-                .map(function(name) { return $('<li>' + name + '</li>')})
-                .subscribe(function(item) { insideList.append(item); });
-              outsideList.empty();
-              Rx.Observable.from(result.outside.sort())
-                .map(function(name) { return $('<li>' + name + '</li>')})
-                .subscribe(function(item) { outsideList.append(item); });
-            },
-            function(error) {
-              console.error(error);
-            },
-            function() {
-              loader.attr('hidden', true);
-            });
-        return false;
-      });
-    </script>
+    <script src="jquery.min.js"></script>
+    <script src="/modules/rx/dist/rx.all.min.js"></script>
+    <script src="/modules/rx/dist/rx.all.compat.min.js"></script>
+    <script src="app.js"></script>
   </body>
 </html>
