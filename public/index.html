@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <title>Check Franz</title>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <base href="/" />
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script src="/modules/rx/dist/rx.all.min.js"></script>
+    <script src="/modules/rx/dist/rx.all.compat.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-xs-12">
+          <h1>Say the names:</h1>
+          <form id="names-form">
+            <div class="form-group">
+              <textarea name="names" class="form-control" rows="10">
+asd
+qwe
+
+zxc
+
+we
+              </textarea>
+            </div>
+            <button class="btn btn-primary" type="submit">Check'em</button>
+          </form>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12 text-center" id="loader" hidden="true">
+          <img src="loader.gif">
+        </div>
+        <div class="col-sm-6 col-xs-12 bg-success" id="inside">
+          <h2>Franciscanos</h2>
+          <ul></ul>
+        </div>
+        <div class="col-sm-6 col-xs-12 bg-danger" id="outside">
+          <h2>Outsiders</h2>
+          <ul></ul>
+        </div>
+      </div>
+    </div>
+    
+    <script>
+      var form = $('#names-form');
+      form.submit(function(event) {
+        var names = form.find('textarea').val()
+          .split('\n')
+          .map(function(s) { return s.trim(); })
+          .filter(function(s) { return !!s; });
+        var loader = $('#loader');
+        var insideList = $('#inside ul');
+        var outsideList = $('#outside ul');
+
+        loader.attr('hidden', false);
+        insideList.empty();
+        outsideList.empty();
+
+        Rx.Observable.from(names)
+          .flatMap(function(name) {
+            return Rx.Observable.fromPromise($.get('/franz', {name: name}));
+          })
+          .scan(function(acc, x) {
+            return x.belongs ?
+                    { inside: acc.inside.concat(x.name), outside: acc.outside } :
+                    { inside: acc.inside, outside: acc.outside.concat(x.name) };
+          }, {inside: [], outside: []})
+          .subscribe(
+            function(result) {
+              insideList.empty();
+              Rx.Observable.from(result.inside.sort())
+                .map(function(name) { return $('<li>' + name + '</li>')})
+                .subscribe(function(item) { insideList.append(item); });
+              outsideList.empty();
+              Rx.Observable.from(result.outside.sort())
+                .map(function(name) { return $('<li>' + name + '</li>')})
+                .subscribe(function(item) { outsideList.append(item); });
+            },
+            function(error) {
+              console.error(error);
+            },
+            function() {
+              loader.attr('hidden', true);
+            });
+        return false;
+      });
+    </script>
+  </body>
+</html>
