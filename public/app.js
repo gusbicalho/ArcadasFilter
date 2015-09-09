@@ -29,6 +29,18 @@
       })
       .subscribe(function(item) { listElement.append(item); });
   }
+  
+  function comparePersons(a, b) {
+    a = a.name;
+    b = b.name;
+    if (a < b) { // true
+      return -1;
+    }
+    if (a > b) {
+      return 1;
+    }
+    return 0;
+  }
 
   form.submit(function(event) {
     var names = textarea.val()
@@ -47,8 +59,8 @@
       })
       .scan(function(acc, x) {
         return x.belongs ?
-                { inside: acc.inside.concat(x).sort(), outside: acc.outside } :
-                { inside: acc.inside, outside: acc.outside.concat(x).sort() };
+                { inside: acc.inside.concat(x).sort(comparePersons), outside: acc.outside } :
+                { inside: acc.inside, outside: acc.outside.concat(x).sort(comparePersons) };
       }, {inside: [], outside: []})
       .subscribe(
         function(result) {

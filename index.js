@@ -1,15 +1,13 @@
-var bodyParser = require('body-parser');
+process.env.PORT = process.env.PORT || 7070;
+
 var cors = require('cors');
 var express = require('express');
 var http = require('http');
 var iconv = require('iconv-lite');
 
-var app = express();
-var parseUrlEncoded = bodyParser.urlencoded({extended:false});
-var parseJSON = bodyParser.json();
 iconv.extendNodeEncodings();
 
-process.env.PORT = process.env.PORT || 7070;
+var app = express();
 
 var corsOptions = {
   origin: true,
@@ -18,8 +16,8 @@ var corsOptions = {
   exposedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Location'],
   credentials: true
 };
+app.use(cors(corsOptions));
 
-var app = express();
 app.use('/franz', require('./check-franz'));
 app.use(express.static('./public'));
 app.use('/modules', express.static('./node_modules'));
